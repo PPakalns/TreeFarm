@@ -1,7 +1,11 @@
 os.loadAPI("lain")
 
+robot = lain.robot
+
 basechannel = 666
-robotchannel = math.random(777,10000) -- Less events for channel
+if (robot.robotchannel==nil) then
+  robot.robotchannel=math.random(777,10000) 
+end
 modemSide="right"
 
 timeout = 5
@@ -61,7 +65,7 @@ function Ping()
     },
     request="ping"
   }
-  modem.transmit(basechannel, robotchannel, textutils.serialize(message) )
+  modem.transmit(basechannel, robot.robotchannel, textutils.serialize(message) )
 end
 
 function TurtleTreeFarm(parentscreen, modem, robot)
@@ -80,7 +84,7 @@ function TurtleTreeFarm(parentscreen, modem, robot)
   local screen = window.create( parentscreen, 3,3, w-3, h-3)
 
   print("MODEM ",modem)
-  modem.open(robotchannel)
+  modem.open(robot.robotchannel)
 
   local ping = os.startTimer(pingtimer)
   local refresh = os.startTimer(refreshtimer)
@@ -89,15 +93,15 @@ function TurtleTreeFarm(parentscreen, modem, robot)
   local hometimer=os.startTimer(2)
   robot.timer=os.startTimer(timeout)
 
-  print("STARTING TURTLE TREE FARM")
+  print("STARTING TURTLE TREE FARM ID - ", os.getComputerID())
   print("STARTUP STATE - SUBSTATE")
-  print(robot.state)
-  print(robot.substate)
+  print(robot.state," - ",robot.substate)
 
   while (true) do
     lain.writeData("robot.log",robot)
 
     ev = {os.pullEventRaw()}
+
     if (ev[1]=="timer") then
       if (ev[2]==ping) then
         Ping()
@@ -124,7 +128,7 @@ function TurtleTreeFarm(parentscreen, modem, robot)
           },
           request="startup"
         }
-        modem.transmit(basechannel, robotchannel, textutils.serialize(message))
+        modem.transmit(basechannel, robot.robotchannel, textutils.serialize(message))
         robot.timer = os.startTimer(timeout)
         robot.substate=1
       elseif (robot.substate==1) then
@@ -222,15 +226,16 @@ function TurtleTreeFarm(parentscreen, modem, robot)
         if (lain.tcomparecord(robot.to,robot)) then
           robot.to.go=false
           robot.substate=17
+          print(" HOME ")
         end
       elseif (robot.substate==17) then
-        print(" HOME ")
         -- HOME
       end
 
       if (ev[1]=="modem_message") then
         local message=textutils.unserialize(ev[5])
         if (message.request=="job" and message.target==robot.id) then
+          print("Received job request, adding to job queue")
           table.insert(robot.jobqueue,message)
         end
       end
@@ -365,7 +370,7 @@ function TurtleTreeFarm(parentscreen, modem, robot)
           request = "accepted",
           jobid= robot.job.id,
         }
-        modem.transmit(basechannel, robotchannel, textutils.serialize(message))
+        modem.transmit(basechannel, robot.robotchannel, textutils.serialize(message))
         robot.timer = os.startTimer(timeout)
         robot.substate = 1
       elseif (robot.substate==1) then
@@ -393,8 +398,7 @@ function TurtleTreeFarm(parentscreen, modem, robot)
     elseif (robot.state==8) then
       if (robot.substate==nil) then
 
-        modem.transmit(basechannel, robotchannel,
-        textutils.serialize(robot.job.message))
+        modem.transmit(basechannel, robot.robotchannel, textutils.serialize(robot.job.message))
 
         robot.timer = os.startTimer(timeout)
         robot.substate = 1
@@ -658,7 +662,6 @@ if (modem==nil) then
   exit()
 end
 
-robot = lain.robot
 
 lain.addAllowedToBreak("minecraft:leaves")
 for name,nn in pairs(Wood) do

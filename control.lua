@@ -5,7 +5,7 @@ monitorSide = "back"
 
 timeout = 2  -- CHECK IF BASE NEEDS UPDATES
 jobtimeout = 2
-treeChopTime = 15*60/2
+treeChopTime = 10*60/2
 
 data={}
 
@@ -31,9 +31,31 @@ function TurtleTreeFarmScreen(parentscreen)
       screen.write(" ")
       screen.write(bot.robot.state)
       screen.write(" ")
+      if (bot.lastping==nil) then bot.lastping=0 end
+      screen.write(data.time-bot.lastping)
       i=i+1
     end
-    sleep(2)
+    i=3
+    j=20
+    for id,job in pairs(data.jobqueue) do
+      if (job.exec) then
+        screen.setCursorPos(j,i)
+        screen.write("# ")
+        screen.write(job.exec)
+        screen.write(" ")
+        screen.write(job.jobt)
+        screen.write(" ")
+        screen.write(job.time)
+        screen.write(" ")
+        screen.write(job.asked)
+        i=i+1
+        if (i>=h) then
+          i=3
+          j=j+20
+        end
+      end
+    end
+    sleep(4)
   end
 end
 
@@ -183,7 +205,6 @@ function TreeFarmControl(parentscreen, modem)
   local ev = {}
 
   while (true) do
-    print(data.time)
     if (ev[1]=="timer") then
       if (ev[2]==counter) then
         data.time = data.time +1
@@ -204,9 +225,11 @@ function TreeFarmControl(parentscreen, modem)
 
         -- regular update about turtle state
         if (message.request=="ping") then
-          print("PING MESSAGE")
+          -- print("PING MESSAGE ",message.ID)
           if (data.turtle[message.ID]~=nil) then
             data.turtle[message.ID].robot=message.robot;
+            data.turtle[message.ID].lastping=data.time
+            data.turtle[message.ID].responseCh=ev[4]
 
             if (message.robot.state==1) then  -- Robot is FREE
               --Trying to search for job
@@ -216,7 +239,6 @@ function TreeFarmControl(parentscreen, modem)
                 and robo.robot.state==1) then
 
                 local minjob=nil
-                print("robo ID ",robo.ID)
                 for it, job in pairs(data.jobqueue) do
                   job.cord=lain.taddCord(data.farm, job)
 
@@ -226,14 +248,13 @@ function TreeFarmControl(parentscreen, modem)
                     -- Check if robot inventory has requested materials
                     if (job.jobt==jobType.Dirt and robo.robot.dirt>0)
                       or (job.jobt==jobType.Torch and robo.robot.torch>0)
-                      or (job.jobt==jobType.Sapling and robo.robot.saplings>0) then
+                      or (job.jobt==jobType.Sapling and robo.robot.saplings>0)
+                      or (job.jobt==jobType.Tree) then
 
                       if (minjob==nil
                         or lain.tdistance(robo.robot,job.cord)
                         <lain.tdistance(minjob.cord,robo.robot)) then
-
                         minjob=job
-
                       end
                     end
                   end
@@ -247,7 +268,7 @@ function TreeFarmControl(parentscreen, modem)
                   }
                   robo.notfree=true
                   minjob.asked=robo.ID
-                  print("Sending job request to ",response.target)
+                  print("Sending job request ",jobTypeName[minjob.jobt]," to ",response.target)
 
                   modem.transmit(
                   robo.responseCh,basechannel,textutils.serialize(response))
@@ -273,12 +294,12 @@ function TreeFarmControl(parentscreen, modem)
             data.turtle[message.ID].home=lain.taddCord(
             data.farm, data.turtle[message.ID].homeLocal)
 
-            data.turtle[message.ID].responseCh=ev[4]
           end
           data.turtle[message.ID].robot.x=message.robot.x
           data.turtle[message.ID].robot.y=message.robot.y
           data.turtle[message.ID].robot.z=message.robot.z
           data.turtle[message.ID].robot.f=message.robot.f
+          data.turtle[message.ID].responseCh=ev[4]
           data.turtle[message.ID].robot.state=message.robot.state
 
           local response = {
@@ -297,7 +318,7 @@ function TreeFarmControl(parentscreen, modem)
 
           -- TURTLE IS GOING TO DO A JOB
         elseif (message.request=="accepted") then
-          print("Job accept request")
+          print("Job accept request from ",message.ID)
           local accept_fail=true
           for it,job in pairs(data.jobqueue) do
             if (job.id == message.jobid and job.exec~=true) then
@@ -325,7 +346,7 @@ function TreeFarmControl(parentscreen, modem)
           end
 
         elseif (message.request=="job_done") then  -- TURTLE FINISHED JOB
-          print("job done request")
+          print("job done request from ",message.ID)
 
           local response = {
             target = message.ID,
@@ -397,10 +418,23 @@ jobType={
   Tree=3
 }
 
+jobTypeName={
+  [jobType.Dirt] = "Dirt",
+  [jobType.Sapling] = "Sapling",
+  [ jobType.Torch ] = "Torch",
+  [ jobType.Tree ] = "ChopTree",
+}
+
 monitor = peripheral.wrap(monitorSide)
-monitor.setTextScale(0.5)
+if (monitor~=nil) then
+  monitor.setTextScale(0.5)
+end
 
 modem = peripheral.wrap(modemSide)
+if (modem==nil) then
+  print("Modem must be attached at the right side of computer")
+  exit()
+end
 
 --term.redirect(peripheral.wrap("top"))
 
