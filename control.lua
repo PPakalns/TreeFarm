@@ -1,17 +1,20 @@
-basechannel=666
+os.loadAPI("lain")
+data={}
+
+-- CONFIG --
+basechannel=666 -- Modem channel where control computer listens for messages
 
 modemSide= "right"
 monitorSide = "back"
+treeGrowWaitTimeInMinutes = 10
+-- CONFIG END --
 
-timeout = 2  -- CHECK IF BASE NEEDS UPDATES
+timeout = 2  -- TIME COUNTER TIMER
 jobtimeout = 2
-treeChopTime = 10*60/2
+treeChopTime = treeGrowWaitTimeInMinutes*60/timeout
 
-data={}
 
-os.loadAPI("lain")
--- Specific program
-
+-- Function for screen with executed job output
 function TurtleTreeFarmScreen(parentscreen)
   if (parentscreen==nil) then return 0 end
 
@@ -23,6 +26,8 @@ function TurtleTreeFarmScreen(parentscreen)
     screen.setCursorPos(5,1)
     screen.write("- Tree Farm - time ")
     screen.write(data.time)
+    screen.write(" * ")
+    screen.write(timeout)
 
     local i=3
     for id,bot in pairs(data.turtle) do
@@ -59,7 +64,7 @@ function TurtleTreeFarmScreen(parentscreen)
   end
 end
 
--- Main base control
+-- Main treefarm control function
 function TreeFarmControl(parentscreen, modem)
   modem.closeAll()
 
