@@ -434,6 +434,14 @@ function DoWork()
   print("STARTING DoWork thread")
   while (true) do
     ev = {os.pullEventRaw()}
+
+    --CHECK FUEL LEVEL EACH TIME
+    --Needed because treechoping doesn't check if there is enough fuel
+    if (turtle.getFuelLevel()<reserveFuel) then
+      turtle.select(16)
+      turtle.refuel(1)
+    end
+
     if (robot.state==1) then
       -- Get info about inventory
 
