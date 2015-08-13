@@ -437,7 +437,7 @@ function DoWork()
 
     --CHECK FUEL LEVEL EACH TIME
     --Needed because treechoping doesn't check if there is enough fuel
-    if (turtle.getFuelLevel()<reserveFuel) then
+    if (turtle.getFuelLevel()~="unlimited" and turtle.getFuelLevel()<reserveFuel) then
       turtle.select(16)
       turtle.refuel(1)
     end
