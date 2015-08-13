@@ -5,12 +5,13 @@ robot = lain.robot
 basechannel = 666
 robotchannel = nil  -- nil - (Random modem channel)
 modemSide="right"
+reserveFuel=100  -- Min turtle fuel level
 -- CONFIG END --
 
 if (robotchannel~=nil) then
   robot.robotchannel=robotchannel
 elseif (robot.robotchannel==nil) then
-  robot.robotchannel=math.random(777,10000) 
+  robot.robotchannel=math.random(777,10000)
 end
 
 timeout = 5
@@ -37,8 +38,8 @@ Torch = {
 }
 
 Fuel = {
-  [ "minecraft:coal" ]=true,
-  [ "minecraft:coal_block" ]=true
+  [ "minecraft:coal" ]=80,
+  [ "minecraft:coal_block" ]=800,
 }
 
 function FoundTree(cordinate) -- Continue, allowtobreak, return
@@ -448,9 +449,9 @@ function DoWork()
       if (inv~=nil and Saplings[inv.name]) then  robot.saplings=inv.count
       else robot.sapling=0  end
 
-      inv=turtle.getItemDetail(16)  -- Fuel
-      if (inv~=nil and Fuel[inv.name]) then  robot.fuel=inv.fuel
-      else robot.fuel=0  end
+      --inv=turtle.getItemDetail(16)  -- Fuel
+      --if (inv~=nil and Fuel[inv.name]) then  robot.fuel=inv.fuel
+      --else robot.fuel=0  end
 
 
       if (robot.substate==2 or robot.substate==5 or robot.substate==8
@@ -494,50 +495,72 @@ function DoWork()
       -- SEARCHING FOR JOB
       if (robot.jobqueue and #robot.jobqueue>0) then
         print("Removing jobqueue")
-        -- CHECK FUEL
 
-        local message = table.remove(robot.jobqueue,1)
-        if (message.job.jobt == jobType.Dirt) then
-          local invent = turtle.getItemDetail(13)
-          if (invent~=nil) then
-            if (Dirt[invent.name]) then
+        local fueldata = turtle.getItemDetail(16)
+
+        if (turtle.getFuelLevel()=="unlimited") then
+          robot.fuel=1000000000 --infinity
+        elseif (fueldata~=nil) and (Fuel[fueldata.name]) then
+          --Calculating how much fuel we have
+          robot.fuel=Fuel[fueldata.name]*fueldata.count
+                     + turtle.getFuelLevel()
+                     - reserveFuel
+        else
+          robot.fuel= turtle.getFuelLevel() - reserveFuel
+        end
+
+        while (robot.jobqueue and #robot.jobqueue>0) do
+          local queuedjob = table.remove(robot.jobqueue,1)
+
+          local remainingfuel = robot.fuel
+                                - lain.tdistance(robot,queuedjob.job.cord)
+                                - lain.tdistance(queuedjob.job.cord, robot.woodc)
+
+          if (remainingfuel > 0) then
+
+            if (queuedjob.job.jobt == jobType.Dirt) then
+              local invent = turtle.getItemDetail(13)
+              if (invent~=nil) then
+                if (Dirt[invent.name]) then
+                  robot.to.go=false
+                  robot.job=queuedjob.job
+                  robot.state=7
+                  robot.substate=nil
+                  robot.jobqueue={}
+                end
+              end
+            elseif (queuedjob.job.jobt == jobType.Torch) then
+              local invent = turtle.getItemDetail(14)
+              if (invent~=nil) then
+                if (Torch[invent.name]) then
+                  robot.to.go=false
+                  robot.job=queuedjob.job
+                  robot.state=7
+                  robot.substate=nil
+                  robot.jobqueue={}
+                end
+              end
+
+            elseif (queuedjob.job.jobt == jobType.Sapling) then
+              local invent = turtle.getItemDetail(15)
+              if (invent~=nil) then
+                if (Saplings[invent.name]) then
+                  robot.to.go=false
+                  robot.job=queuedjob.job
+                  robot.state=7
+                  robot.substate=nil
+                  robot.jobqueue={}
+                end
+              end
+
+            elseif (queuedjob.job.jobt == jobType.Tree) then
               robot.to.go=false
-              robot.job=message.job
+              robot.job=queuedjob.job
               robot.state=7
               robot.substate=nil
               robot.jobqueue={}
             end
           end
-        elseif (message.job.jobt == jobType.Torch) then
-          local invent = turtle.getItemDetail(14)
-          if (invent~=nil) then
-            if (Torch[invent.name]) then
-              robot.to.go=false
-              robot.job=message.job
-              robot.state=7
-              robot.substate=nil
-              robot.jobqueue={}
-            end
-          end
-
-        elseif (message.job.jobt == jobType.Sapling) then
-          local invent = turtle.getItemDetail(15)
-          if (invent~=nil) then
-            if (Saplings[invent.name]) then
-              robot.to.go=false
-              robot.job=message.job
-              robot.state=7
-              robot.substate=nil
-              robot.jobqueue={}
-            end
-          end
-
-        elseif (message.job.jobt == jobType.Tree) then
-          robot.to.go=false
-          robot.job=message.job
-          robot.state=7
-          robot.substate=nil
-          message.jobqueue={}
         end
       end
     elseif (robot.state==3) then  -- CHOPING TREE

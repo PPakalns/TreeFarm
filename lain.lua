@@ -431,8 +431,12 @@ function _MOVE(movefunction,direction) -- direction  UP DOWN FORWARD
         return true
       else
         if (turtle.getFuelLevel()==0) then
-          print("NO FUEL")
-          exit()
+          turtle.select(16)
+          if (turtle.refuel(1)) then
+            print("REFUEL")
+          else
+            print("NO MORE FUEL AT SLOT 16")
+          end
         end
         -- if not try again
         -- ???????????????
