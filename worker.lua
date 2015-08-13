@@ -1,16 +1,21 @@
 os.loadAPI("lain")
-
 robot = lain.robot
 
+-- CONFIG --
 basechannel = 666
-if (robot.robotchannel==nil) then
+robotchannel = nil  -- nil - (Random modem channel)
+modemSide="right"
+-- CONFIG END --
+
+if (robotchannel~=nil) then
+  robot.robotchannel=robotchannel
+elseif (robot.robotchannel==nil) then
   robot.robotchannel=math.random(777,10000) 
 end
-modemSide="right"
 
 timeout = 5
 refreshtimer = 1
-pingtimer=15
+pingtimer=10
 
 Wood = {
   [ "minecraft:log" ]=true,
