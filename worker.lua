@@ -6,6 +6,7 @@ basechannel = 666
 robotchannel = nil  -- nil - (Random modem channel)
 modemSide="right"
 reserveFuel=100  -- Min turtle fuel level
+pingtimer=10
 -- CONFIG END --
 
 if (robotchannel~=nil) then
@@ -16,7 +17,6 @@ end
 
 timeout = 5
 refreshtimer = 1
-pingtimer=10
 
 Wood = {
   [ "minecraft:log" ]=true,
@@ -24,7 +24,7 @@ Wood = {
   [ "minecraft:leaves" ]=true
 }
 
-Saplings = {
+Sapling = {
   [ "minecraft:sapling" ]=true,
   [ "IC2:blockRubSapling" ]=true
 }
@@ -42,6 +42,7 @@ Fuel = {
   [ "minecraft:coal_block" ]=800,
 }
 
+-- When going to chop tree and target tree is blocking way
 function FoundTree(cordinate) -- Continue, allowtobreak, return
   if (lain.tcomparecord(cordinate, robot.to)) then
     return true, true, nil
@@ -53,7 +54,7 @@ end
 function Ping()
   if (robot.dirt==nil) then robot.dirt=0 end
   if (robot.torch==nil) then robot.torch=0 end
-  if (robot.saplings==nil) then robot.saplings=0 end
+  if (robot.sapling==nil) then robot.sapling=0 end
 
   local message = {
     ID = os.getComputerID(),
@@ -66,7 +67,7 @@ function Ping()
       state=robot.state,
       dirt=robot.dirt,
       torch=robot.torch,
-      saplings=robot.saplings,
+      sapling=robot.sapling,
       fuel=robot.fuel,
     },
     request="ping"
@@ -437,7 +438,7 @@ function DoWork()
 
     --CHECK FUEL LEVEL EACH TIME
     --Needed because treechoping doesn't check if there is enough fuel
-    if (turtle.getFuelLevel()<reserveFuel) then
+    if (turtle.getFuelLevel()~="unlimited" and turtle.getFuelLevel()<reserveFuel) then
       turtle.select(16)
       turtle.refuel(1)
     end
@@ -454,7 +455,7 @@ function DoWork()
       else robot.torch=0  end
 
       inv=turtle.getItemDetail(15) -- Sapling
-      if (inv~=nil and Saplings[inv.name]) then  robot.saplings=inv.count
+      if (inv~=nil and Sapling[inv.name]) then  robot.sapling=inv.count
       else robot.sapling=0  end
 
       --inv=turtle.getItemDetail(16)  -- Fuel
@@ -471,7 +472,7 @@ function DoWork()
           if (robot.substate==2) then -- WOODC
             lookuptable,input,position=Wood,false,nil
           elseif (robot.substate==5) then --SAPLINGC
-            lookuptable,input,position=Saplings,true,15
+            lookuptable,input,position=Sapling,true,15
           elseif (robot.substate==8) then -- FUELC
             lookuptable,input,position=Fuel,true,16
           elseif (robot.substate==11) then -- TorchC
@@ -552,7 +553,7 @@ function DoWork()
             elseif (queuedjob.job.jobt == jobType.Sapling) then
               local invent = turtle.getItemDetail(15)
               if (invent~=nil) then
-                if (Saplings[invent.name]) then
+                if (Sapling[invent.name]) then
                   robot.to.go=false
                   robot.job=queuedjob.job
                   robot.state=7
@@ -672,7 +673,7 @@ function DoWork()
               robot.substate = robot.substate + 1
             end
             turtle.select(1)
-          elseif (Saplings[blockdata.name]) then
+          elseif (Sapling[blockdata.name]) then
             robot.substate = robot.substate + 1
           end
         else
