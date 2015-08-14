@@ -80,6 +80,15 @@ function WriteText(screen,x,y,text,clearLine,hidden)
 
 end
 
+function WriteInLine(screen, x,y, data)
+  screen.setCursorPos(x,y)
+  if (data==nil) then return 0 end
+  for i=1,#data do
+    screen.write(data[i])
+    screen.write(" ")
+  end
+end
+
 function ReadUserInput(parentscreen, question, number, password, x, y, x2, y2)
   if (parentscreen==nil) then
     parentscreen=term.current();
@@ -472,8 +481,8 @@ function _MOVE(movefunction,direction) -- direction  UP DOWN FORWARD
           end
         else  -- Add to nonbreakable block list
           print("Adding to NO BREAK")
-          if (blockdata=="ComputerCraft:CC-Turtle")then
-            addNonBreakableBlock(blockcord, 3)
+          if (blockdata=="ComputerCraft:CC-Turtle" or blockdata=="ComputerCraft:CC-TurtleExpanded")then
+            addNonBreakableBlock(blockcord, 4)
           else
             addNonBreakableBlock(blockcord, NonBreakableBlockTimer)
           end
@@ -651,10 +660,10 @@ function removeBlockTest(block)
   BlockLaunchTest[block]=nil
 end
 
-function addNonBreakableBlock(blockcord, timeout)
+function addNonBreakableBlock(blockcord, timeoutsec)
   local timer=nil
   if (timeout~=nil) then
-    timer = os.startTimer(timeout)
+    timer = os.startTimer(timeoutsec)
   end
   blockcord.timer=timer
 

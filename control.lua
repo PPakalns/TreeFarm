@@ -21,38 +21,24 @@ function TurtleTreeFarmScreen(parentscreen)
   local w,h=parentscreen.getSize()
   local screen = window.create(parentscreen, 1,1,w,h,true )
 
+  while (data.turtle==nil) do sleep(1) end
+
   while (true) do
     lain.Decorate(screen)
-    screen.setCursorPos(5,1)
-    screen.write("- Tree Farm - time ")
-    screen.write(data.time)
-    screen.write(" * ")
-    screen.write(timeout)
+    lain.WriteInLine(screen,5,1,{" - Tree Farm - time",data.time,"*",timeout})
 
     local i=3
     for id,bot in pairs(data.turtle) do
-      screen.setCursorPos(3,i)
-      screen.write(id)
-      screen.write(" ")
-      screen.write(bot.robot.state)
-      screen.write(" ")
       if (bot.lastping==nil) then bot.lastping=0 end
-      screen.write(data.time-bot.lastping)
+      lain.WriteInLine(screen,3,i,{id,bot.robot.state,data.time-bot.lastping,
+            bot.robot.dirt,bot.robot.torch,bot.robot.sapling,bot.robot.fuel})
       i=i+1
     end
     i=3
-    j=20
+    j=40
     for id,job in pairs(data.jobqueue) do
       if (job.exec) then
-        screen.setCursorPos(j,i)
-        screen.write("# ")
-        screen.write(job.exec)
-        screen.write(" ")
-        screen.write(job.jobt)
-        screen.write(" ")
-        screen.write(job.time)
-        screen.write(" ")
-        screen.write(job.asked)
+        lain.WriteInLine(screen,j,i,{"#",job.exec,jobTypeName[job.jobt],job.time,job.asked})
         i=i+1
         if (i>=h) then
           i=3
@@ -153,7 +139,7 @@ function TreeFarmControl(parentscreen, modem)
           local job1 = {
             id=data.jcnt,
             x=(i*3),
-            y=2,
+            y=1,
             z=(j*4),
             jobt=jobType.Dirt,
             nextjob=jobType.Sapling,
@@ -164,7 +150,7 @@ function TreeFarmControl(parentscreen, modem)
           local job2 = {
             id=data.jcnt,
             x=(i*3),
-            y=2,
+            y=1,
             z=(j*4) + ((j>0) and (1) or (-1)),
             jobt=jobType.Dirt,
             nextjob=jobType.Torch,
@@ -175,7 +161,7 @@ function TreeFarmControl(parentscreen, modem)
           local job3 = {
             id=data.jcnt,
             x=(i*3),
-            y=2,
+            y=1,
             z=(j*4) + ((j>0) and (2) or (-2)),
             jobt=jobType.Dirt,
             nextjob=jobType.Sapling,
@@ -189,6 +175,9 @@ function TreeFarmControl(parentscreen, modem)
 
     print("saving installation data")
     lain.writeData("base.log",data)
+    print("RESTARTING")
+    sleep(1)
+    os.reboot()
   end
 
   modem.open(basechannel) -- treefarm main channel
@@ -253,7 +242,7 @@ function TreeFarmControl(parentscreen, modem)
                     -- Check if robot inventory has requested materials
                     if (job.jobt==jobType.Dirt and robo.robot.dirt>0)
                       or (job.jobt==jobType.Torch and robo.robot.torch>0)
-                      or (job.jobt==jobType.Sapling and robo.robot.saplings>0)
+                      or (job.jobt==jobType.Sapling and robo.robot.sapling>0)
                       or (job.jobt==jobType.Tree) then
 
                       if (minjob==nil
@@ -290,7 +279,7 @@ function TreeFarmControl(parentscreen, modem)
             data.turtle[message.ID].homeLocal={
               x=data.tcnt,
               y=0,
-              z=-1,
+              z=-2,
             }
             data.turtle[message.ID].ID = message.ID
             data.turtle[message.ID].robot = {}
