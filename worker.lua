@@ -76,7 +76,7 @@ function Ping()
 end
 
 function TurtleTreeFarm(parentscreen, modem, robot)
-  print("yolo")
+  print("Tree Farm function launch")
   if (parentscreen==nil) then
     parentscreen = term.current()
   end
@@ -101,8 +101,7 @@ function TurtleTreeFarm(parentscreen, modem, robot)
   robot.timer=os.startTimer(timeout)
 
   print("STARTING TURTLE TREE FARM ID - ", os.getComputerID())
-  print("STARTUP STATE - SUBSTATE")
-  print(robot.state," - ",robot.substate)
+  print("STARTUP STATE - SUBSTATE = ",robot.state," - ",robot.substate)
 
   while (true) do
     lain.writeData("robot.log",robot)
@@ -138,7 +137,7 @@ function TurtleTreeFarm(parentscreen, modem, robot)
         modem.transmit(basechannel, robot.robotchannel, textutils.serialize(message))
         robot.timer = os.startTimer(timeout)
         robot.substate=1
-      elseif (robot.substate==1) then
+      elseif (robot.substate==1) then --WAITING for startup message
         if (ev[1]=="modem_message") then
           local message=textutils.unserialize(ev[5])
           if (message.target == os.getComputerID() ) then
@@ -151,102 +150,71 @@ function TurtleTreeFarm(parentscreen, modem, robot)
               robot.dirtc=message.dirtc
               robot.torchc=message.torchc
               robot.timer=nil -- unset timer
-              robot.state=1
+              robot.state=jobType.Home
               robot.substate=nil
               robot.jobqueue={}
             end
           end
         elseif (ev[1]=="timer") then
-          if (ev[2]==robot.timer) then
+          if (ev[2]==robot.timer) then --RETRY sensing startup message
             robot.substate=0
           end
         end
       end
 
-    elseif (robot.state==1) then -- GOING HOME
-      if (robot.substate==nil or robot.substate==-2) then
-        Ping() -- UPDATE STATE
+    elseif (robot.state==jobType.Home) then -- GOING HOME / AFTER RESOURCES
+      if (robot.substate==nil or robot.substate==0 ) then --WAIT TWO SECONDS FOR JOB
+        Ping()
         ping=os.startTimer(pingtimer)
 
         hometimer=os.startTimer(2)
-        robot.substate=-1
-      elseif (robot.substate==-1) then
+
+        robot.substate=1
+        robot.jobqueue={}
+        robot.location=0
+        robot.nextlocation=true
+
+      elseif (robot.substate==1) then
         if (ev[1]=="timer") then
-          if (ev[2]==hometimer) then
-            robot.substate=0
+          if (ev[2]==hometimer) then --Move to home location after delay
+            robot.substate=2
           end
         end
-      elseif (robot.substate==0) then
-        print("GOING HOME")
-        robot.jobqueue={}
-        robot.to={}
-        robot.to.go, robot.to.calculated = true, false
-        lain.tpasteCord(robot.woodc,robot.to)  -- MOVE TO WOODC
-        robot.substate=1
-      elseif (robot.substate==1) then
-        if (lain.tcomparecord(robot.to,robot)) then
-          print("INVENTORY STATE")
-          robot.to.go=false
-          robot.substate=2
-        end
+      elseif (robot.substate==2) then --GO to chests and home
+          local movelocations = {
+              [1] = robot.woodc,
+              [2] = robot.saplingc,
+              [3] = robot.fuelc,
+              [4] = robot.torchc,
+              [5] = robot.dirtc,
+              [6] = robot.home
+          }
+
+          if (robot.nextlocation) then
+              robot.nextlocation=false
+              robot.location = robot.location + 1
+              if (robot.location>#movelocations) then
+                  robot.substate=3 --at home
+              else
+                  -- go to next location
+                  lain.tpasteCord(movelocations[robot.location], robot.to)
+                  robot.to.go, robot.to.calculated = true, false
+              end
+          end
       elseif (robot.substate==3) then
-        robot.to.go, robot.to.calculated = true, false
-        lain.tpasteCord(robot.saplingc,robot.to)  -- MOVE TO SAPLINGC
-        robot.substate=4
-      elseif (robot.substate==4) then
-        if (lain.tcomparecord(robot.to,robot)) then
-          robot.to.go=false
-          robot.substate=5
-        end
-      elseif (robot.substate==6) then
-        robot.to.go, robot.to.calculated = true, false
-        lain.tpasteCord(robot.fuelc,robot.to)  -- MOVE TO FUELC
-        robot.substate=7
-      elseif (robot.substate==7) then
-        if (lain.tcomparecord(robot.to,robot)) then
-          robot.to.go=false
-          robot.substate=8
-        end
-      elseif (robot.substate==9) then
-        robot.to.go, robot.to.calculated = true, false
-        lain.tpasteCord(robot.torchc,robot.to)  -- MOVE TO torchc
-        robot.substate=10
-      elseif (robot.substate==10) then
-        if (lain.tcomparecord(robot.to,robot)) then
-          robot.to.go=false
-          robot.substate=11
-        end
-      elseif (robot.substate==12) then
-        robot.to.go, robot.to.calculated = true, false
-        lain.tpasteCord(robot.dirtc,robot.to)  -- MOVE TO dirtc
-        robot.substate=13
-      elseif (robot.substate==13) then
-        if (lain.tcomparecord(robot.to,robot)) then
-          robot.to.go=false
-          robot.substate=14
-        end
-      elseif (robot.substate==15) then
-        robot.to.go, robot.to.calculated = true, false
-        lain.tpasteCord(robot.home,robot.to)  -- MOVE TO home
-        robot.substate=16
-      elseif (robot.substate==16) then
-        if (lain.tcomparecord(robot.to,robot)) then
-          robot.to.go=false
-          robot.substate=17
-          print(" HOME ")
-        end
-      elseif (robot.substate==17) then
-        -- HOME
+          -- home
+          -- Do nothing, wait for job request
       end
 
-      if (ev[1]=="modem_message") then
+      if (ev[1]=="modem_message") then --Job request
         local message=textutils.unserialize(ev[5])
         if (message.request=="job" and message.target==robot.id) then
           print("Received job request, adding to job queue")
           table.insert(robot.jobqueue,message)
         end
       end
-    elseif (robot.state==3) then -- ChopingTree
+
+    elseif (robot.state==jobType.Tree) then -- ChopingTree
       if (robot.substate==nil) then
         print("Copping tree")
         robot.substate=-1
@@ -276,7 +244,7 @@ function TurtleTreeFarm(parentscreen, modem, robot)
         robot.subheight=nil
         robot.chopUP=nil
         robot.substate=nil
-        robot.state=8
+        robot.state=jobType.JobDone
         robot.job.message=message
 
       elseif (robot.substate==3) then
@@ -288,41 +256,18 @@ function TurtleTreeFarm(parentscreen, modem, robot)
           jobstatus = "NOT GROWN"
         }
 
+        -- SENDING JOB DONE MESSAGE
         robot.subheight=nil
         robot.chopUP=nil
         robot.substate=nil
-        robot.state=8
-        robot.job.message=message
-      end
-    elseif (robot.state==4) then -- Torch
-      if (robot.substate==nil) then
-        print("Placing torch")
-        robot.substate=0
-        lain.tpasteCord(robot.job.cord, robot.to)
-        robot.to.go, robot.to.calculated = true, false
-      end
-
-      if (robot.substate==0 and lain.tcomparecord(robot, robot.to)) then
-        robot.go = false
-        robot.substate=1  -- state place torch
-      end
-
-      if (robot.substate==2) then -- torch placed
-        local message = {
-          ID = os.getComputerID(),
-          request="job_done",
-          jobid = robot.job.id,
-          jobstatus = "TORCH"
-        }
-
-        robot.substate=nil
-        robot.state=8
+        robot.state=jobType.JobDone
         robot.job.message=message
       end
 
-    elseif (robot.state==5) then -- Dirt
+      --PLACING BLOCK
+    elseif (robot.state==jobType.Torch or robot.state==jobType.Dirt or robot.state==jobType.Sapling) then 
       if (robot.substate==nil) then
-        print("Placing dirt")
+        print("Going to place block")
         robot.substate=0
         lain.tpasteCord(robot.job.cord, robot.to)
         robot.to.go, robot.to.calculated = true, false
@@ -338,39 +283,22 @@ function TurtleTreeFarm(parentscreen, modem, robot)
           ID = os.getComputerID(),
           request="job_done",
           jobid = robot.job.id,
-          jobstatus = "DIRT"
+          jobstatus = ""
         }
 
-        robot.substate=nil
-        robot.state=8
-        robot.job.message=message
-      end
-    elseif (robot.state==6) then -- Sapling
-      if (robot.substate==nil) then
-        print("Placing sapling")
-        robot.substate=0
-        lain.tpasteCord(robot.job.cord, robot.to)
-        robot.to.go, robot.to.calculated = true, false
-      end
-
-      if (robot.substate==0 and lain.tcomparecord(robot, robot.to)) then
-        robot.go = false
-        robot.substate=1
-      end
-
-      if (robot.substate==2) then
-        local message = {
-          ID = os.getComputerID(),
-          request="job_done",
-          jobid = robot.job.id,
-          jobstatus = "SAPLING"
-        }
+        if (robot.state==jobType.Torch) then
+          message.jobstatus="TORCH"
+        elseif (robot.state==jobType.Dirt) then
+          message.jobstatus="DIRT"
+        elseif (robot.state==jobType.Sapling) then
+          message.jobstatus="SAPLING"
+        end
 
         robot.substate=nil
-        robot.state=8
+        robot.state=jobType.JobDone
         robot.job.message=message
       end
-    elseif (robot.state==7) then -- Accepting job
+    elseif (robot.state==jobType.JobAccept) then -- Accepting job
       if (robot.substate==nil) then
         local message = {
           ID = os.getComputerID(),
@@ -390,7 +318,7 @@ function TurtleTreeFarm(parentscreen, modem, robot)
               robot.state=robot.job.jobt
               robot.substate=nil
             elseif (message.request=="accepted_response_fail") then
-              robot.state=1
+              robot.state=jobType.Home
               robot.substate=nil
               robot.timer=nil
             end
@@ -402,7 +330,7 @@ function TurtleTreeFarm(parentscreen, modem, robot)
           end
         end
       end
-    elseif (robot.state==8) then
+    elseif (robot.state==jobType.JobDone) then --Job done message
       if (robot.substate==nil) then
 
         modem.transmit(basechannel, robot.robotchannel, textutils.serialize(robot.job.message))
@@ -416,7 +344,7 @@ function TurtleTreeFarm(parentscreen, modem, robot)
             if (message.request=="job_done_response") then
               print("job accept response received")
               robot.timer=nil
-              robot.state=1
+              robot.state=jobType.Home
               robot.substate=nil
             end
           end
@@ -443,7 +371,8 @@ function DoWork()
       turtle.refuel(1)
     end
 
-    if (robot.state==1) then
+    if (robot.state==jobType.Home) then
+
       -- Get info about inventory
 
       local inv=turtle.getItemDetail(13) -- Dirt
@@ -458,26 +387,22 @@ function DoWork()
       if (inv~=nil and Sapling[inv.name]) then  robot.sapling=inv.count
       else robot.sapling=0  end
 
-      --inv=turtle.getItemDetail(16)  -- Fuel
-      --if (inv~=nil and Fuel[inv.name]) then  robot.fuel=inv.fuel
-      --else robot.fuel=0  end
+      -- End
 
 
-      if (robot.substate==2 or robot.substate==5 or robot.substate==8
-        or robot.substate==11 or robot.substate==14) then
-
-        if (lain.tcomparecord(robot,robot.to))then
+      if (robot.substate==2 and robot.location>0) then
+        if (robot.to.go==false and lain.tcomparecord(robot,robot.to))then
           print("PICKING ITEMS FROM CHEST")
           local lookuptable,input,position=nil,nil,nil
-          if (robot.substate==2) then -- WOODC
+          if (robot.location==1) then -- WOODC
             lookuptable,input,position=Wood,false,nil
-          elseif (robot.substate==5) then --SAPLINGC
+          elseif (robot.location==2) then --SAPLINGC
             lookuptable,input,position=Sapling,true,15
-          elseif (robot.substate==8) then -- FUELC
+          elseif (robot.location==3) then -- FUELC
             lookuptable,input,position=Fuel,true,16
-          elseif (robot.substate==11) then -- TorchC
+          elseif (robot.location==4) then -- TorchC
             lookuptable,input,position=Torch,true,14
-          elseif (robot.substate==14) then -- DirtC
+          elseif (robot.location==5) then -- DirtC
             lookuptable,input,position=Dirt,true,13
           end
 
@@ -495,9 +420,10 @@ function DoWork()
           end
 
           turtle.select(1)
-          robot.substate=robot.substate+1
-        else
-          robot=robot.substate-2 --REset
+          robot.nextlocation = true
+        elseif (robot.to.go==false) then -- IF there was a restart and robot not going to target
+            robot.location = robot.location-1
+            robot.nextlocation = true
         end
       end
 
@@ -505,74 +431,60 @@ function DoWork()
       if (robot.jobqueue and #robot.jobqueue>0) then
         print("Removing jobqueue")
 
+
+        -- Checking fuel level
         local fueldata = turtle.getItemDetail(16)
 
         if (turtle.getFuelLevel()=="unlimited") then
           robot.fuel=1000000000 --infinity
         elseif (fueldata~=nil) and (Fuel[fueldata.name]) then
-          --Calculating how much fuel we have
-          robot.fuel=Fuel[fueldata.name]*fueldata.count
-                     + turtle.getFuelLevel()
-                     - reserveFuel
+            robot.fuel=Fuel[fueldata.name]*fueldata.count
+            + turtle.getFuelLevel()
+            - reserveFuel
         else
-          robot.fuel= turtle.getFuelLevel() - reserveFuel
+            robot.fuel= turtle.getFuelLevel() - reserveFuel
         end
 
-        while (robot.jobqueue and #robot.jobqueue>0) do
-          local queuedjob = table.remove(robot.jobqueue,1)
+
+          -- Analyzing job requests (accept, discard)
+          while (robot.jobqueue and #robot.jobqueue>0) do
+            local queuedjob = table.remove(robot.jobqueue,1)
+            local accepted = false
 
           local remainingfuel = robot.fuel
                                 - lain.tdistance(robot,queuedjob.job.cord)
                                 - lain.tdistance(queuedjob.job.cord, robot.woodc)
 
           if (remainingfuel > 0) then
-
             if (queuedjob.job.jobt == jobType.Dirt) then
               local invent = turtle.getItemDetail(13)
-              if (invent~=nil) then
-                if (Dirt[invent.name]) then
-                  robot.to.go=false
-                  robot.job=queuedjob.job
-                  robot.state=7
-                  robot.substate=nil
-                  robot.jobqueue={}
-                end
+              if (invent~=nil and Dirt[invent.name]) then
+                accepted=true
               end
             elseif (queuedjob.job.jobt == jobType.Torch) then
               local invent = turtle.getItemDetail(14)
-              if (invent~=nil) then
-                if (Torch[invent.name]) then
-                  robot.to.go=false
-                  robot.job=queuedjob.job
-                  robot.state=7
-                  robot.substate=nil
-                  robot.jobqueue={}
-                end
+              if (invent~=nil and Torch[invent.name]) then
+                accepted=true
               end
-
             elseif (queuedjob.job.jobt == jobType.Sapling) then
               local invent = turtle.getItemDetail(15)
-              if (invent~=nil) then
-                if (Sapling[invent.name]) then
-                  robot.to.go=false
-                  robot.job=queuedjob.job
-                  robot.state=7
-                  robot.substate=nil
-                  robot.jobqueue={}
-                end
+              if (invent~=nil and Sapling[invent.name]) then
+                accepted=true
               end
-
             elseif (queuedjob.job.jobt == jobType.Tree) then
+              accepted=true
+            end
+
+            if (accepted) then
               robot.to.go=false
               robot.job=queuedjob.job
-              robot.state=7
+              robot.state=jobType.JobAccept
               robot.substate=nil
               robot.jobqueue={}
             end
           end
-        end
       end
-    elseif (robot.state==3) then  -- CHOPING TREE
+  elseif (robot.state==jobType.Tree) then  -- CHOPING TREE
       if (robot.substate==0) then
         if (lain.tcomparecord(robot,robot.to)) then
           print("CHECKING IF TREE HAS GROWN")
@@ -626,54 +538,30 @@ function DoWork()
           end
         end
       end
-    elseif (robot.state==4) then --Torch
+    elseif (robot.state==jobType.Torch or robot.state==jobType.Dirt or robot.state==jobType.Sapling) then 
+      -- PLACE TORCH / DIRT / SAPLING
       if (robot.substate==1) then
         if (lain.tcomparecord(robot,robot.to)) then
-          print("PLACING TORCH")
+            local lookuptable, slot
+            if (robot.state==jobType.Torch) then
+              lookuptable, slot = Torch, 14
+              print("PLACING TORCH")
+            elseif (robot.state==jobType.Dirt) then
+              lookuptable, slot = Dirt, 13
+              print("PLACING DIRT")
+            elseif (robot.state==jobType.Sapling) then
+              lookuptable, slot = Sapling, 15
+              print("PLACING SAPLING")
+            end
+
           local block, blockdata = turtle.inspectDown()
           if (block~=true) then
-            turtle.select(14)
+            turtle.select(slot)
             if (turtle.placeDown()) then
               robot.substate = robot.substate + 1
             end
-            turtle.select(1)
-          elseif (Torch[blockdata.name]) then
-            robot.substate = robot.substate + 1
-          end
-        else
-          robot.substate=nil --try again
-        end
-      end
-    elseif (robot.state==5) then --Dirt
-      if (robot.substate==1) then
-        if (lain.tcomparecord(robot,robot.to)) then
-          print("PLACING DIRT")
-          local block, blockdata = turtle.inspectDown()
-          if (block~=true) then
-            turtle.select(13)
-            if (turtle.placeDown()) then
-              robot.substate = robot.substate + 1
-            end
-            turtle.select(1)
-          elseif (Dirt[blockdata.name]) then
-            robot.substate = robot.substate + 1
-          end
-        else
-          robot.substate=nil --try again
-        end
-      end
-    elseif (robot.state==6) then --sapling
-      if (robot.substate==1) then
-        if (lain.tcomparecord(robot,robot.to)) then
-          print("PLACING SAPLING")
-          local block, blockdata = turtle.inspectDown()
-          if (block~=true) then
-            turtle.select(15)
-            if (turtle.placeDown()) then
-              robot.substate = robot.substate + 1
-            end
-            turtle.select(1)
-          elseif (Sapling[blockdata.name]) then
+            turtle.select(16)
+          elseif (lookuptable[blockdata.name]) then
             robot.substate = robot.substate + 1
           end
         else
@@ -684,15 +572,18 @@ function DoWork()
   end
 end
 
-
---- PASTED FROM CONTROL.LUA
 jobType={
+--- PASTED FROM CONTROL.LUA
   Dirt=5,
   Sapling=6,
   Torch=4,
-  Tree=3
+  Tree=3,
+--- worker.lua jobType
+  Home=1,
+  JobDone=8,
+  JobAccept=7,
 }
---END
+
 modem = peripheral.wrap(modemSide)
 if (modem==nil) then
   print("ERROR modem")
@@ -706,8 +597,6 @@ for name,nn in pairs(Wood) do
 end
 
 term.clear()
-
---TurtleTreeFarm(nil,modem)
 
 parallel.waitForAny(lain.RobotMoveTo, TurtleTreeFarm,
 lain.turtleUpdate, DoWork)
