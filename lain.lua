@@ -829,6 +829,15 @@ function Apath(from, to, vertical, nolimit)
 
   print(" A* recalculating ")
 
+  local directions = {
+    0 = {x=0, z=1,y=0},
+    1 = {x=-1, z=0,y=0},
+    2 = {x=0, z=-1,y=0},
+    3 = {x=1, z=0,y=0},
+    4 = {x=0, z=0,y=1}, -- UP
+    5 = {x=0, z=0,y=-1}, --DOWN
+  }
+
   local searchingDistance=25
   local heap,dist,cnt,elem,answ,answdist
 
@@ -878,141 +887,26 @@ function Apath(from, to, vertical, nolimit)
         end
       end
 
-      local f
-      f = 0
-      if (((act.x + act.y) % 2 == 0) or nolimit) then
-        local actf={}
-        actf.x = act.x
-        actf.y = act.y
-        actf.z = act.z + 1
+      for f=0,5 do
+          local actf={}
+          actf.x = act.x + directions.x
+          actf.y = act.y + directions.y
+          actf.z = act.z + directions.z
 
-        actf.sD = act.sD + 1
-        actf.eD = tdistance(actf,to)
-        actf.V=actf.eD + actf.sD
+          actf.sD = act.sD + 1
+          actf.eD = tdistance(actf,to)
+          actf.V=actf.eD + actf.sD
 
-        if (face~=f) then actf.V = actf.V+0.5 end
+          if (face~=f) then actf.V = actf.V+0.5 end
 
-        local parb = Tget(dist, actf.x, actf.y, actf.z)
-        if (parb==nil) then
-          pushHeap(heap,actf)
-          Tset(dist,f,actf.x,actf.y,actf.z)
-        end
-      end
-
-      f = 1
-      if (((act.z + act.y) % 2 == 0) or nolimit) then
-        local actf={}
-        actf.x = act.x - 1
-        actf.y = act.y
-        actf.z = act.z
-
-        actf.sD = act.sD + 1
-        actf.eD = tdistance(actf,to)
-        actf.V=actf.eD + actf.sD
-
-        if (face~=f) then actf.V = actf.V+0.5 end
-
-
-        local parb = Tget(dist, actf.x, actf.y, actf.z)
-        if (parb==nil) then
-          pushHeap(heap,actf)
-          Tset(dist,f,actf.x,actf.y,actf.z)
-        end
-      end
-
-      f = 2
-      if (((act.x + act.y) % 2 ~= 0) or nolimit) then
-        local actf={}
-        actf.x = act.x
-        actf.y = act.y
-        actf.z = act.z -1
-
-        actf.sD = act.sD + 1
-        actf.eD = tdistance(actf,to)
-        actf.V=actf.eD + actf.sD
-
-        if (face~=f) then actf.V = actf.V+0.5 end
-
-
-        local parb = Tget(dist, actf.x, actf.y, actf.z)
-        if (parb==nil) then
-          pushHeap(heap,actf)
-          Tset(dist,f,actf.x,actf.y,actf.z)
-        end
-      end
-
-
-
-      f = 3
-      if ((act.z + act.y) % 2 ~= 0) or nolimit then
-        local actf={}
-        actf.x = act.x + 1
-        actf.y = act.y
-        actf.z = act.z
-
-        actf.sD = act.sD + 1
-        actf.eD = tdistance(actf,to)
-        actf.V=actf.eD + actf.sD
-
-        if (face~=f) then actf.V = actf.V+0.5 end
-
-
-        local parb = Tget(dist, actf.x, actf.y, actf.z)
-        if (parb==nil) then
-          pushHeap(heap,actf)
-          Tset(dist,f,actf.x,actf.y,actf.z)
-        end
-      end
-
-      if (vertical) then
-        local f=5
-        local actf={}
-        actf.x = act.x
-        actf.y = act.y - 1
-        actf.z = act.z
-
-        actf.sD = act.sD + 1
-        actf.eD = tdistance(actf,to)
-        actf.V=actf.eD + actf.sD
-
-        if (face~=f) then actf.V = actf.V+0.5 end
-
-
-        local parb = Tget(dist, actf.x, actf.y, actf.z)
-        if ((act.x + act.z) % 2 == 0) or nolimit then
+          local parb = Tget(dist, actf.x, actf.y, actf.z)
           if (parb==nil) then
             pushHeap(heap,actf)
             Tset(dist,f,actf.x,actf.y,actf.z)
           end
+
         end
       end
-
-
-
-      if (vertical) then
-        local f=4
-        local actf={}
-        actf.x = act.x
-        actf.y = act.y + 1
-        actf.z = act.z
-
-        actf.sD = act.sD + 1
-        actf.eD = tdistance(actf,to)
-        actf.V=actf.eD + actf.sD
-
-        if (face~=f) then actf.V = actf.V+0.5 end
-
-
-        local parb = Tget(dist, actf.x, actf.y, actf.z)
-        if ((act.x + act.z) % 2 ~= 0) or nolimit then
-          if (parb==nil) then
-            pushHeap(heap,actf)
-            Tset(dist,f,actf.x,actf.y,actf.z)
-          end
-        end
-      end
-
-
     end
   end
 
