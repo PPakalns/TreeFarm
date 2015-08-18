@@ -3,16 +3,15 @@ data={}
 
 -- CONFIG --
 basechannel=666 -- Modem channel where control computer listens for messages
+timeout = 2  -- TIME COUNTER TIMER
+jobtimeout = 2
 
 modemSide= "right"
 monitorSide = "back"
 treeGrowWaitTimeInMinutes = 10
 -- CONFIG END --
 
-timeout = 2  -- TIME COUNTER TIMER
-jobtimeout = 2
 treeChopTime = treeGrowWaitTimeInMinutes*60/timeout
-
 
 -- Function for screen with executed job output
 function TurtleTreeFarmScreen(parentscreen)
