@@ -1,3 +1,5 @@
+-- Read data from file
+-- Saved data in file must be in textutils.serialize 
 function readData(file)
   if (fs.exists(file) == false) then
     return  nil
