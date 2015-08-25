@@ -1,3 +1,5 @@
+-- Read data from file
+-- Saved data in file must be in textutils.serialize 
 function readData(file)
   if (fs.exists(file) == false) then
     return  nil
@@ -8,6 +10,7 @@ function readData(file)
   return textutils.unserialize(s)
 end
 
+-- Save data in file 
 function writeData(file, data)
 
   if (fs.exists(file)) then
@@ -20,8 +23,7 @@ function writeData(file, data)
   f.close()
 end
 
-
--- Clear window - draw border
+-- Clear screen and draw border around it
 function Decorate(screen,border)
   if (screen==nil) then
     return
@@ -51,7 +53,9 @@ function Decorate(screen,border)
 end
 
 
--- WriteText in screen
+-- Write text at specific cordinates on screen
+-- clearLine - clear all line
+-- hidden  - replaces characters with "*"
 function WriteText(screen,x,y,text,clearLine,hidden)
   if (text==nil) then
     text=""
@@ -80,6 +84,8 @@ function WriteText(screen,x,y,text,clearLine,hidden)
 
 end
 
+-- Write multiple values on screen from data table
+-- example data definition       data={a,b,c,d}
 function WriteInLine(screen, x,y, data)
   screen.setCursorPos(x,y)
   if (data==nil) then return 0 end
@@ -89,6 +95,9 @@ function WriteInLine(screen, x,y, data)
   end
 end
 
+-- Read user input, opens new screen on top of parent screen
+-- number - if user need to input integer
+-- password - user input in screen output is replaced with "*"
 function ReadUserInput(parentscreen, question, number, password, x, y, x2, y2)
   if (parentscreen==nil) then
     parentscreen=term.current();
@@ -184,7 +193,8 @@ end
 
 
 
--- Background text for debugging purpose
+-- os.pullEvent loger
+-- Writes log to screen
 function DisplayEvents(parentscreen)
   if (parentscreen==nil) then
     parentscreen=term.current()
@@ -226,6 +236,7 @@ function DisplayEvents(parentscreen)
   end
 end
 
+-- Return value of table - data[x] | data[x][y] etc
 function Tget(data,x,y,z,f)
 
   if (x==nil) or (data==nil) then
@@ -239,6 +250,7 @@ function Tget(data,x,y,z,f)
   end
 end
 
+-- Set value to table - data[x]=value | data[x][y]=value etc
 function Tset(data,value,x,y,z,f)
 
   if (x==nil) then
@@ -256,6 +268,7 @@ function Tset(data,value,x,y,z,f)
   end
 end
 
+-- Move turtle forward
 function tforward()
   if (turtle.forward()) then
     if (robot["f"]==0) then robot["z"]=robot["z"]+1
@@ -273,6 +286,7 @@ function tforward()
   end
 end
 
+-- Move turtle back
 function tback()
   if (turtle.back()) then
     if (robot["f"]==0) then robot["z"]=robot["z"]-1
@@ -290,6 +304,7 @@ function tback()
   end
 end
 
+-- Move turtle up
 function tup()
   if (turtle.up()) then
     robot["y"]=robot["y"]+1
@@ -303,6 +318,7 @@ function tup()
   end
 end
 
+--Move turtle down
 function tdown()
   if (turtle.down()) then
     robot["y"]=robot["y"]-1
@@ -315,6 +331,7 @@ function tdown()
   end
 end
 
+--Turn turtle anti-clockwise
 function tturnLeft()
   if (turtle.turnLeft()) then
     robot["f"]=robot["f"]+4-1
@@ -331,7 +348,7 @@ function tturnLeft()
   end
 end
 
-
+--turn turtle clockwise
 function tturnRight()
   if (turtle.turnRight()) then
     robot["f"]=robot["f"]+4+1
@@ -348,6 +365,7 @@ function tturnRight()
   end
 end
 
+-- turn turtle to specific direction f=[0;4]
 function tturn(direction)
   if (direction<0 or direction>3) then
     return true
@@ -381,7 +399,9 @@ function tturn(direction)
   return true
 end
 
-function calculateBlockCordfromRobotCord(direction)
+-- Calculates cordinate of block next to turtle
+-- Possible direction - UP DOWN FORWARD RIGHT BACK LEFT
+function calculateBlockCordfromRobotCord(wdirection)
   local cc = {
     x=robot.x,
     y=robot.y,
@@ -391,12 +411,12 @@ function calculateBlockCordfromRobotCord(direction)
   tf=robot.f
   if (tf==nil) then tf=0 end
 
-  if (direction=="UP") then tf=-4
-  elseif (direction=="DOWN") then tf=-5
-  elseif (direction=="FORWARD") then tf=tf+0
-  elseif (direction=="RIGHT") then tf=tf+1
-  elseif (direction=="BACK") then tf=tf+2
-  elseif (direction=="LEFT") then tf=tf+3 end
+  if (wdirection=="UP") then tf=-4
+  elseif (wdirection=="DOWN") then tf=-5
+  elseif (wdirection=="FORWARD") then tf=tf+0
+  elseif (wdirection=="RIGHT") then tf=tf+1
+  elseif (wdirection=="BACK") then tf=tf+2
+  elseif (wdirection=="LEFT") then tf=tf+3 end
 
 
   while (tf>3) do   --tf=[0;3]
@@ -416,6 +436,8 @@ function calculateBlockCordfromRobotCord(direction)
   return cc
 end
 
+-- Move turtle to one possible direction
+-- UP DOWN FORWARD
 function _MOVE(movefunction,direction) -- direction  UP DOWN FORWARD
 
   local try, maxtry = 0, 5
@@ -481,7 +503,7 @@ function _MOVE(movefunction,direction) -- direction  UP DOWN FORWARD
           end
         else  -- Add to nonbreakable block list
           print("Adding to NO BREAK")
-          if (blockdata=="ComputerCraft:CC-Turtle" or blockdata=="ComputerCraft:CC-TurtleExpanded")then
+          if string.find(blockdata, "Turtle") then
             addNonBreakableBlock(blockcord, 4)
           else
             addNonBreakableBlock(blockcord, NonBreakableBlockTimer)
@@ -496,7 +518,8 @@ function _MOVE(movefunction,direction) -- direction  UP DOWN FORWARD
   return false  -- failed to move
 end
 
--- Do a move list
+-- Turtle execute a move array,,, array consists of integer 
+-- [0;3] f    4 - up  5 - down
 function tmove(movelist)
   while (robot.to.go and robot.to.calculated) do
     sleep(0)
@@ -533,6 +556,7 @@ function tmove(movelist)
 
 end
 
+-- Compare if cordinates are equal
 function tcomparecord(a,b)
   if (a.x==b.x and a.y==b.y and a.z==b.z) then
     return true
@@ -541,6 +565,8 @@ function tcomparecord(a,b)
   end
 end
 
+-- Add cordinate b to a, and checking a facing direction and expecting that
+-- Function rotates b cordinates to match with a direction
 function taddCord(a, b) -- a cordinates with face   b normal cordinates
   local aplusb = {}
   aplusb.x=b.x
@@ -565,6 +591,7 @@ function taddCord(a, b) -- a cordinates with face   b normal cordinates
   return aplusb
 end
 
+-- Pytagorean distance between a and b cordinates
 function distance(a,b)
   local x,y,z
   x=a.x-b.x
@@ -573,6 +600,7 @@ function distance(a,b)
   return math.sqrt((x*x)+(y*y)+(z*z))
 end
 
+-- Manhetens distance between a and b cordinates
 function tdistance(a,b)
   if (a==nil or b==nil) then
     return 100000000  -- infinity
@@ -580,6 +608,13 @@ function tdistance(a,b)
   return (math.abs(a.x-b.x)+math.abs(a.y-b.y)+math.abs(a.z-b.z))
 end
 
+-- Moves turtle to target cordinates
+-- Target cordinates need to be set at robot.to
+-- Variable robot.to.go = true  needs to be set
+-- When target is reached robot.to.go is set to false
+--
+-- This functions is written to run in parrallel api with the main program
+-- which sets global variable (robot.to) in this api for robot to move
 function RobotMoveTo()
   print("Robot move to listener started")
   while (true) do
@@ -593,7 +628,7 @@ function RobotMoveTo()
     if (robot.to.go==true) then
       print("Starting to move")
       while (tcomparecord(robot,robot.to)==false and robot.to.go) do
-        local movelist=Apath(robot, robot.to, true, true)
+        local movelist=Apath(robot, robot.to, true)
         robot.to.calculated=true
         recalc=tmove(movelist)
         if (recalc~=true or #movelist==0) then
@@ -606,6 +641,8 @@ function RobotMoveTo()
   end
 end
 
+-- Startuo function for turtle
+-- Ask user to input robot cordinates
 function RunRobot(parentscreen)
 
   if (parentscreen==nil) then
@@ -644,22 +681,30 @@ function RunRobot(parentscreen)
   return robot
 end
 
+-- Add block what is allowed to break when robot is moving around
 function addAllowedToBreak(block)
   AllowedToBreak[block]=true;
 end
 
+-- Remove allowed to break block
 function removeAllowedToBreak(block)
   AllowedToBreak[block]=nil;
 end
 
+-- Add function to be runned when turtle path is blocked by a block
+-- For specific callFunction expected return variables check _MOVE function
 function addBlockTest(block,callFunction)
   BlockLaunchTest[block]=callFunction
 end
 
+-- Remove in addBlockTest(block,callFunction) setted callFunction
 function removeBlockTest(block)
   BlockLaunchTest[block]=nil
 end
 
+-- Function is called when turtle path is blocked by a block 
+-- function saves block position for timeoutsec / A* pathfinding uses this
+-- cordinate to check if position is empty 
 function addNonBreakableBlock(blockcord, timeoutsec)
   local timer=nil
   if (timeout~=nil) then
@@ -671,6 +716,7 @@ function addNonBreakableBlock(blockcord, timeoutsec)
 end
 
 -- USE THIS IF using built in navigation functions
+-- Delete NonBreakableBlock after some time ( timeoutsec )
 function turtleUpdate()
   -- Updating breakable block database - maybe turtle or tree ?
   while (true) do
@@ -688,6 +734,8 @@ function turtleUpdate()
   end
 end
 
+-- Setting api global variables
+--
 robot = nil
 destination = nil
 if turtle then
@@ -763,8 +811,8 @@ function tpasteCord(from,to)
   to.z=from.z
 end
 
--- A pathfinding
---
+-- HEAP FUNCTIONS
+
 
 function pushHeap(heap,data)
   if (heap==nil) then
@@ -825,9 +873,20 @@ function popHeap(heap)
   end
 end
 
-function Apath(from, to, vertical, nolimit)
+-- A* pathfinding
+-- returns movelist (directions [0;5]  4 - UP    5 - DOWN)
+function Apath(from, to, vertical)
 
   print(" A* recalculating ")
+
+  local directions = {
+    [ 0 ] = {x=0, z=1,y=0},
+    [ 1 ] = {x=-1, z=0,y=0},
+    [ 2 ] = {x=0, z=-1,y=0},
+    [ 3 ] = {x=1, z=0,y=0},
+    [ 4 ] = {x=0, z=0,y=1}, -- UP
+    [ 5 ] = {x=0, z=0,y=-1}, --DOWN
+  }
 
   local searchingDistance=25
   local heap,dist,cnt,elem,answ,answdist
@@ -878,141 +937,24 @@ function Apath(from, to, vertical, nolimit)
         end
       end
 
-      local f
-      f = 0
-      if (((act.x + act.y) % 2 == 0) or nolimit) then
-        local actf={}
-        actf.x = act.x
-        actf.y = act.y
-        actf.z = act.z + 1
+      for f=0,5 do
+          local actf={}
+          actf.x = act.x + directions[f].x
+          actf.y = act.y + directions[f].y
+          actf.z = act.z + directions[f].z
 
-        actf.sD = act.sD + 1
-        actf.eD = tdistance(actf,to)
-        actf.V=actf.eD + actf.sD
+          actf.sD = act.sD + 1
+          actf.eD = tdistance(actf,to)
+          actf.V=actf.eD + actf.sD
 
-        if (face~=f) then actf.V = actf.V+0.5 end
+          if (face~=f) then actf.V = actf.V+0.5 end
 
-        local parb = Tget(dist, actf.x, actf.y, actf.z)
-        if (parb==nil) then
-          pushHeap(heap,actf)
-          Tset(dist,f,actf.x,actf.y,actf.z)
-        end
-      end
-
-      f = 1
-      if (((act.z + act.y) % 2 == 0) or nolimit) then
-        local actf={}
-        actf.x = act.x - 1
-        actf.y = act.y
-        actf.z = act.z
-
-        actf.sD = act.sD + 1
-        actf.eD = tdistance(actf,to)
-        actf.V=actf.eD + actf.sD
-
-        if (face~=f) then actf.V = actf.V+0.5 end
-
-
-        local parb = Tget(dist, actf.x, actf.y, actf.z)
-        if (parb==nil) then
-          pushHeap(heap,actf)
-          Tset(dist,f,actf.x,actf.y,actf.z)
-        end
-      end
-
-      f = 2
-      if (((act.x + act.y) % 2 ~= 0) or nolimit) then
-        local actf={}
-        actf.x = act.x
-        actf.y = act.y
-        actf.z = act.z -1
-
-        actf.sD = act.sD + 1
-        actf.eD = tdistance(actf,to)
-        actf.V=actf.eD + actf.sD
-
-        if (face~=f) then actf.V = actf.V+0.5 end
-
-
-        local parb = Tget(dist, actf.x, actf.y, actf.z)
-        if (parb==nil) then
-          pushHeap(heap,actf)
-          Tset(dist,f,actf.x,actf.y,actf.z)
-        end
-      end
-
-
-
-      f = 3
-      if ((act.z + act.y) % 2 ~= 0) or nolimit then
-        local actf={}
-        actf.x = act.x + 1
-        actf.y = act.y
-        actf.z = act.z
-
-        actf.sD = act.sD + 1
-        actf.eD = tdistance(actf,to)
-        actf.V=actf.eD + actf.sD
-
-        if (face~=f) then actf.V = actf.V+0.5 end
-
-
-        local parb = Tget(dist, actf.x, actf.y, actf.z)
-        if (parb==nil) then
-          pushHeap(heap,actf)
-          Tset(dist,f,actf.x,actf.y,actf.z)
-        end
-      end
-
-      if (vertical) then
-        local f=5
-        local actf={}
-        actf.x = act.x
-        actf.y = act.y - 1
-        actf.z = act.z
-
-        actf.sD = act.sD + 1
-        actf.eD = tdistance(actf,to)
-        actf.V=actf.eD + actf.sD
-
-        if (face~=f) then actf.V = actf.V+0.5 end
-
-
-        local parb = Tget(dist, actf.x, actf.y, actf.z)
-        if ((act.x + act.z) % 2 == 0) or nolimit then
+          local parb = Tget(dist, actf.x, actf.y, actf.z)
           if (parb==nil) then
             pushHeap(heap,actf)
             Tset(dist,f,actf.x,actf.y,actf.z)
           end
-        end
       end
-
-
-
-      if (vertical) then
-        local f=4
-        local actf={}
-        actf.x = act.x
-        actf.y = act.y + 1
-        actf.z = act.z
-
-        actf.sD = act.sD + 1
-        actf.eD = tdistance(actf,to)
-        actf.V=actf.eD + actf.sD
-
-        if (face~=f) then actf.V = actf.V+0.5 end
-
-
-        local parb = Tget(dist, actf.x, actf.y, actf.z)
-        if ((act.x + act.z) % 2 ~= 0) or nolimit then
-          if (parb==nil) then
-            pushHeap(heap,actf)
-            Tset(dist,f,actf.x,actf.y,actf.z)
-          end
-        end
-      end
-
-
     end
   end
 
