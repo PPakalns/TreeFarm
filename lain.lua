@@ -503,7 +503,7 @@ function _MOVE(movefunction,direction) -- direction  UP DOWN FORWARD
           end
         else  -- Add to nonbreakable block list
           print("Adding to NO BREAK")
-          if (blockdata=="ComputerCraft:CC-Turtle" or blockdata=="ComputerCraft:CC-TurtleExpanded")then
+          if string.find(blockdata, "Turtle") then
             addNonBreakableBlock(blockcord, 4)
           else
             addNonBreakableBlock(blockcord, NonBreakableBlockTimer)
@@ -880,12 +880,12 @@ function Apath(from, to, vertical)
   print(" A* recalculating ")
 
   local directions = {
-    0 = {x=0, z=1,y=0},
-    1 = {x=-1, z=0,y=0},
-    2 = {x=0, z=-1,y=0},
-    3 = {x=1, z=0,y=0},
-    4 = {x=0, z=0,y=1}, -- UP
-    5 = {x=0, z=0,y=-1}, --DOWN
+    [ 0 ] = {x=0, z=1,y=0},
+    [ 1 ] = {x=-1, z=0,y=0},
+    [ 2 ] = {x=0, z=-1,y=0},
+    [ 3 ] = {x=1, z=0,y=0},
+    [ 4 ] = {x=0, z=0,y=1}, -- UP
+    [ 5 ] = {x=0, z=0,y=-1}, --DOWN
   }
 
   local searchingDistance=25
@@ -939,9 +939,9 @@ function Apath(from, to, vertical)
 
       for f=0,5 do
           local actf={}
-          actf.x = act.x + directions.x
-          actf.y = act.y + directions.y
-          actf.z = act.z + directions.z
+          actf.x = act.x + directions[f].x
+          actf.y = act.y + directions[f].y
+          actf.z = act.z + directions[f].z
 
           actf.sD = act.sD + 1
           actf.eD = tdistance(actf,to)

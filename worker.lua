@@ -448,43 +448,44 @@ function DoWork()
 
           -- Analyzing job requests (accept, discard)
           while (robot.jobqueue and #robot.jobqueue>0) do
-            local queuedjob = table.remove(robot.jobqueue,1)
-            local accepted = false
+              local queuedjob = table.remove(robot.jobqueue,1)
+              local accepted = false
 
-          local remainingfuel = robot.fuel
-                                - lain.tdistance(robot,queuedjob.job.cord)
-                                - lain.tdistance(queuedjob.job.cord, robot.woodc)
+              local remainingfuel = robot.fuel
+              - lain.tdistance(robot,queuedjob.job.cord)
+              - lain.tdistance(queuedjob.job.cord, robot.woodc)
 
-          if (remainingfuel > 0) then
-            if (queuedjob.job.jobt == jobType.Dirt) then
-              local invent = turtle.getItemDetail(13)
-              if (invent~=nil and Dirt[invent.name]) then
-                accepted=true
-              end
-            elseif (queuedjob.job.jobt == jobType.Torch) then
-              local invent = turtle.getItemDetail(14)
-              if (invent~=nil and Torch[invent.name]) then
-                accepted=true
-              end
-            elseif (queuedjob.job.jobt == jobType.Sapling) then
-              local invent = turtle.getItemDetail(15)
-              if (invent~=nil and Sapling[invent.name]) then
-                accepted=true
-              end
-            elseif (queuedjob.job.jobt == jobType.Tree) then
-              accepted=true
-            end
+              if (remainingfuel > 0) then
+                  if (queuedjob.job.jobt == jobType.Dirt) then
+                      local invent = turtle.getItemDetail(13)
+                      if (invent~=nil and Dirt[invent.name]) then
+                          accepted=true
+                      end
+                  elseif (queuedjob.job.jobt == jobType.Torch) then
+                      local invent = turtle.getItemDetail(14)
+                      if (invent~=nil and Torch[invent.name]) then
+                          accepted=true
+                      end
+                  elseif (queuedjob.job.jobt == jobType.Sapling) then
+                      local invent = turtle.getItemDetail(15)
+                      if (invent~=nil and Sapling[invent.name]) then
+                          accepted=true
+                      end
+                  elseif (queuedjob.job.jobt == jobType.Tree) then
+                      accepted=true
+                  end
 
-            if (accepted) then
-              robot.to.go=false
-              robot.job=queuedjob.job
-              robot.state=jobType.JobAccept
-              robot.substate=nil
-              robot.jobqueue={}
-            end
+                  if (accepted) then
+                      robot.to.go=false
+                      robot.job=queuedjob.job
+                      robot.state=jobType.JobAccept
+                      robot.substate=nil
+                      robot.jobqueue={}
+                  end
+              end
           end
       end
-  elseif (robot.state==jobType.Tree) then  -- CHOPING TREE
+    elseif (robot.state==jobType.Tree) then  -- CHOPING TREE
       if (robot.substate==0) then
         if (lain.tcomparecord(robot,robot.to)) then
           print("CHECKING IF TREE HAS GROWN")
