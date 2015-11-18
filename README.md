@@ -30,7 +30,7 @@ Minecraft automatic tree farm using computercraft mod
 
 ###Program files
 
-* lain.lua - **In game rename to - *lain* **
+* lain.lua - In game rename to - *lain*
 	* library with
 		* Turtle movement functions
 		* Display functions
@@ -43,17 +43,18 @@ Minecraft automatic tree farm using computercraft mod
 
 ###Installation
 
+![Image](../development/screenshots/j.png?raw=true)
+
 0. Setup farm ( Chest placement and filling chests with appropriate resources )
 	1. Choose Treefarm location ( Advice: place block in the ground )
 		- Farm location needs to be empty - without any blocks in the way - Can be built into the air
 	2. Place 5 chests like in the first image ( one block space between them )
-	3. Fill chests from the right side with:
+	3. Fill chests from the right side with: *(Turtle will build farm only if there is enough resources)*
 		0. Nothing
 		1. Saplings
 		2. Fuel ( Coal )
 		3. Torches
 		4. Dirt
-		* Robots will build farm only if there is enough resources
 1. Setup server computer
 	0. Place computer on ground and attach modem ( right side )
 		- Optimal - Attach monitor ( back side )
@@ -62,11 +63,11 @@ Minecraft automatic tree farm using computercraft mod
 	3. Launch *control.lua*
 	4. Answer all questions
 		- TreeFarm coordinates are coordinates what you see when standing on block before the first chest from the right side (*obisidan* block in image) and looking to the first (*Wood*/empty) chest
-		- ** Recommended: don't use farm larger than 15, 15, 15, 15 **
+		- Recommended: don't use farm larger than 15, 15, 15, 15
 	5. Restart computer
 	6. Rename *control.lua* to *startup*
 	7. Restart computer
-2. Setup turtle *x(Turtle count)*
+2. Setup turtle
 	0. Place turtle with wireless modem (right side) and pickaxe or axe on the ground
 	1. Download *lain.lua*, *worker.lua* files
 	2. Rename *worker.lua* to *startup*
@@ -76,24 +77,23 @@ Minecraft automatic tree farm using computercraft mod
 	5. Insert Coal in the last inventory slot
 3. Setup Wood to Coal processing ( For full self sufficiently )
 
-> If some computer isn't working like expected - reboot
-> Please report problems
+> If some computer isn't working like expected - reboot. Please report problems.
 
 ###Screenshots
 
-![Image](../screenshots/j.png?raw=true)
-![Image](../screenshots/i.png?raw=true)
-![Image](../screenshots/k.png?raw=true)
-![Image](../screenshots/o.png?raw=true)
-![Image](../screenshots/q.png?raw=true)
-![Image](../screenshots/f.png?raw=true)
-![Image](../screenshots/w.png?raw=true)
-![Image](../screenshots/y.png?raw=true)
-![Image](../screenshots/u.png?raw=true)
-![Image](../screenshots/zz.png?raw=true)
+![Image](../development/screenshots/j.png)
+![Image](../development/screenshots/i.png)
+![Image](../development/screenshots/k.png)
+![Image](../development/screenshots/o.png)
+![Image](../development/screenshots/q.png)
+![Image](../development/screenshots/f.png)
+![Image](../development/screenshots/w.png)
+![Image](../development/screenshots/y.png)
+![Image](../development/screenshots/u.png)
+![Image](../development/screenshots/zz.png)
 
 *Wood to coal processing*
-![Image](../blob/screenshots/set.png?raw=true)
+![Image](../development/screenshots/set.png)
 
 ##To do
 
