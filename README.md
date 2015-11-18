@@ -81,16 +81,16 @@ Minecraft automatic tree farm using computercraft mod
 
 ###Screenshots
 
-![Image](../blob/screenshots/j.png?raw=true)
-![Image](../blob/screenshots/i.png?raw=true)
-![Image](../blob/screenshots/k.png?raw=true)
-![Image](../blob/screenshots/o.png?raw=true)
-![Image](../blob/screenshots/q.png?raw=true)
-![Image](../blob/screenshots/f.png?raw=true)
-![Image](../blob/screenshots/w.png?raw=true)
-![Image](../blob/screenshots/y.png?raw=true)
-![Image](../blob/screenshots/u.png?raw=true)
-![Image](../blob/screenshots/zz.png?raw=true)
+![Image](../screenshots/j.png?raw=true)
+![Image](../screenshots/i.png?raw=true)
+![Image](../screenshots/k.png?raw=true)
+![Image](../screenshots/o.png?raw=true)
+![Image](../screenshots/q.png?raw=true)
+![Image](../screenshots/f.png?raw=true)
+![Image](../screenshots/w.png?raw=true)
+![Image](../screenshots/y.png?raw=true)
+![Image](../screenshots/u.png?raw=true)
+![Image](../screenshots/zz.png?raw=true)
 
 *Wood to coal processing*
 ![Image](../blob/screenshots/set.png?raw=true)
