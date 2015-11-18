@@ -16,7 +16,7 @@ Minecraft automatic tree farm using computercraft mod
 * Unlimited size *( Need more optimizations - lag - Recommended max ( 10+10 )x( 10+10 ) size )*
 * Unlimited Turtle count *( Need more optimizations - lag - Recommended max 30 turtles )*
 * Self sufficient *( You only need to create automatic log to coal processing )*
-* Automatic refueling, if fuel is enabled.
+* Automatic refueling
 
 ###Resources needed:
 * Coal ( starting fuel for each turtle ( ~64 coal ) )
@@ -45,13 +45,14 @@ Minecraft automatic tree farm using computercraft mod
 
 ![Image](../development/screenshots/j.png?raw=true)
 
-0. Setup farm ( Chest placement and filling chests with appropriate resources )
-	1. Choose Treefarm location ( Advice: place block in the ground )
-		- Farm location needs to be empty - without any blocks in the way - Can be built into the air
+0. Setup farm
+	1. Choose Treefarm location ( Advice: place block in the ground like in image )
+		- Farm location needs to be flattened
 	2. Place 5 chests like in the first image ( one block space between them )
 	3. Fill chests from the right side with: *(Turtle will build farm only if there is enough resources)*
 		0. Nothing
-		1. Saplings
+			- Chest will be used for harvested wood
+		1. Birch saplings
 		2. Fuel ( Coal )
 		3. Torches
 		4. Dirt
