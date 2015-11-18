@@ -1,5 +1,7 @@
+-- Author: Xoandbit
+--
 -- Read data from file
--- Saved data in file must be in textutils.serialize 
+-- Saved data in file must be in textutils.serialize
 function readData(file)
   if (fs.exists(file) == false) then
     return  nil
@@ -10,7 +12,7 @@ function readData(file)
   return textutils.unserialize(s)
 end
 
--- Save data in file 
+-- Save data in file
 function writeData(file, data)
 
   if (fs.exists(file)) then
@@ -518,7 +520,7 @@ function _MOVE(movefunction,direction) -- direction  UP DOWN FORWARD
   return false  -- failed to move
 end
 
--- Turtle execute a move array,,, array consists of integer 
+-- Turtle execute a move array,,, array consists of integer
 -- [0;3] f    4 - up  5 - down
 function tmove(movelist)
   while (robot.to.go and robot.to.calculated) do
@@ -614,7 +616,7 @@ end
 -- When target is reached robot.to.go is set to false
 --
 -- This functions is written to run in parrallel api with the main program
--- which sets global variable (robot.to) in this api for robot to move
+-- which sets (robot.to) in this api for robot to move
 function RobotMoveTo()
   print("Robot move to listener started")
   while (true) do
@@ -632,7 +634,7 @@ function RobotMoveTo()
         robot.to.calculated=true
         recalc=tmove(movelist)
         if (recalc~=true or #movelist==0) then
-          sleep(2)
+          sleep(3)
         end
       end
       robot.to.go=false
@@ -702,9 +704,9 @@ function removeBlockTest(block)
   BlockLaunchTest[block]=nil
 end
 
--- Function is called when turtle path is blocked by a block 
+-- Function is called when turtle path is blocked by a block
 -- function saves block position for timeoutsec / A* pathfinding uses this
--- cordinate to check if position is empty 
+-- cordinate to check if position is empty
 function addNonBreakableBlock(blockcord, timeoutsec)
   local timer=nil
   if (timeout~=nil) then
