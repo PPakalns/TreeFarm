@@ -1,3 +1,5 @@
+-- Author: Xoandbit
+
 os.loadAPI("lain")
 data={}
 

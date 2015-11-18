@@ -1,3 +1,5 @@
+-- Author: Xoandbit
+--
 -- Read data from file
 -- Saved data in file must be in textutils.serialize
 function readData(file)
@@ -614,7 +616,7 @@ end
 -- When target is reached robot.to.go is set to false
 --
 -- This functions is written to run in parrallel api with the main program
--- which sets global variable (robot.to) in this api for robot to move
+-- which sets (robot.to) in this api for robot to move
 function RobotMoveTo()
   print("Robot move to listener started")
   while (true) do
@@ -632,7 +634,7 @@ function RobotMoveTo()
         robot.to.calculated=true
         recalc=tmove(movelist)
         if (recalc~=true or #movelist==0) then
-          sleep(2)
+          sleep(3)
         end
       end
       robot.to.go=false
