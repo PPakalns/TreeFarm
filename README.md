@@ -12,13 +12,13 @@ This program will gather wood, saplings, log for you! You can process wood into 
 
 Minecraft automatic tree farm using computercraft mod
 
-###Features:
+### Features:
 * Unlimited size *( Need more optimizations - lag - Recommended max ( 10+10 )x( 10+10 ) size )*
 * Unlimited Turtle count *( Need more optimizations - lag - Recommended max 30 turtles )*
 * Self sufficient *( You only need to create automatic log to coal processing )*
 * Automatic refueling
 
-###Resources needed:
+### Resources needed:
 * Coal ( starting fuel for each turtle ( ~64 coal ) )
 * Chest x5
 * Turtle with wireless modem and pickaxe or axe;
@@ -28,7 +28,7 @@ Minecraft automatic tree farm using computercraft mod
 * Computer with wireless modem
 	* *(Optimal) Monitor*
 
-###Program files
+### Program files
 
 * lain.lua - In game rename to - *lain*
 	* library with
@@ -41,7 +41,7 @@ Minecraft automatic tree farm using computercraft mod
 	* Control computer ( Server ) program
 	* - uses lain library
 
-###Installation
+### Installation
 
 ![Image](../development/screenshots/j.png?raw=true)
 
@@ -80,23 +80,33 @@ Minecraft automatic tree farm using computercraft mod
 
 > If some computer isn't working like expected - reboot. Please report problems.
 
-###Screenshots
+### Screenshots
 
 ![Image](../development/screenshots/j.png)
+
 ![Image](../development/screenshots/i.png)
+
 ![Image](../development/screenshots/k.png)
+
 ![Image](../development/screenshots/o.png)
+
 ![Image](../development/screenshots/q.png)
+
 ![Image](../development/screenshots/f.png)
+
 ![Image](../development/screenshots/w.png)
+
 ![Image](../development/screenshots/y.png)
+
 ![Image](../development/screenshots/u.png)
+
 ![Image](../development/screenshots/zz.png)
 
 *Wood to coal processing*
+
 ![Image](../development/screenshots/set.png)
 
-##To do
+## To do
 
 * (High priority) More efficient sapling gathering
 
