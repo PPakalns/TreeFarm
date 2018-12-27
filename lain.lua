@@ -9,16 +9,15 @@ function readData(file)
 
   local f=fs.open(file, "r")
   local s=f.readAll()
+  f.close()
   return textutils.unserialize(s)
 end
 
 -- Save data in file
 function writeData(file, data)
-
   if (fs.exists(file)) then
     fs.delete(file)
   end
-
 
   local f=fs.open(file, "w")
   f.write(textutils.serialize(data))
@@ -646,23 +645,20 @@ end
 -- Startuo function for turtle
 -- Ask user to input robot cordinates
 function RunRobot(parentscreen)
-
-  if (parentscreen==nil) then
-    parentscreen=term.current()
-  end
-
-  local w,h=parentscreen.getSize()
-  local screen=window.create(parentscreen,3,2,w-2,h-2,true)
-  Decorate(screen)
-
   local robot = readData("robot.log")
-  if (robot==nil) then
-    robot={}
+  if robot == nil then
+      robot = {}
   end
-
   robot.id=os.getComputerID()
   robot.ID=robot.id
   if (robot["installed"]==nil) then
+    if (parentscreen==nil) then
+      parentscreen=term.current()
+    end
+
+    local w,h=parentscreen.getSize()
+    local screen=window.create(parentscreen,3,2,w-2,h-2,true)
+    Decorate(screen)
     robot["x"]=ReadUserInput(screen,"Turtle x position",true)
     robot["y"]=ReadUserInput(screen,"Trutle y position",true)
     robot["z"]=ReadUserInput(screen,"Turtle z position",true)
@@ -676,10 +672,10 @@ function RunRobot(parentscreen)
     robot.to={}
     robot.to.go=false
     robot.to.calculated=false
+    screen.setVisible(false)
   end
 
-  writeData("robot.log",robot)
-  screen.setVisible(false)
+  writeData("robot.log", robot)
   return robot
 end
 
@@ -738,8 +734,7 @@ end
 
 -- Setting api global variables
 --
-robot = nil
-destination = nil
+robot = {}
 if turtle then
 
   AllowedToBreak = {}
@@ -751,11 +746,19 @@ if turtle then
   --[[
   {x,y,z,timer}
   ]]--
-  robot=RunRobot()
   turtle.select(1)
 end
 
-
+function initRobot(screen)
+    local k = next(robot)
+    while k do
+        robot[k] = nil
+        k = next(robot)
+    end
+    for k,v in pairs(RunRobot(screen)) do
+        robot[k] = v
+    end
+end
 
 -- COROUTINE CONTAINER - FOR SIMPLER EVENT FILTERING
 

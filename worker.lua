@@ -1,6 +1,7 @@
 -- Author: Xoandbit
 --
 os.loadAPI("lain")
+lain.initRobot()
 robot = lain.robot
 
 -- CONFIG --
